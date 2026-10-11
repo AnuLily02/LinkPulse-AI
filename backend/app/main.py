@@ -1,9 +1,9 @@
+from dotenv import load_dotenv
+load_dotenv()  # Must load environment variables first
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import analyze
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = FastAPI(title="LinkPulse AI API")
 

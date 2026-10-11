@@ -9,15 +9,18 @@ class AnalyzeRequest(BaseModel):
     url: str
 
 @router.post("/analyze")
-async def analyze_url(payload: AnalyzeRequest):
+def analyze_url(payload: AnalyzeRequest):
     if not payload.url.strip():
         raise HTTPException(status_code=400, detail="URL cannot be empty.")
     
-    # Step 1: Extract data from URL
+    print("\n--- NEW REQUEST RECEIVED ---")
+    print(f"[1/3] Extracting data for URL: {payload.url}")
     extracted_data = extract_link_data(payload.url)
+    print(f"[2/3] Extraction complete! Title: {extracted_data.get('title')}")
     
-    # Step 2: Analyze sentiment via Gemini LLM
+    print("[3/3] Sending payload to Gemini LLM...")
     analysis_result = analyze_sentiment_with_llm(extracted_data)
+    print("--- ANALYSIS COMPLETE ---\n")
     
     return {
         "metadata": {

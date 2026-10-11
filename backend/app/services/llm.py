@@ -1,17 +1,14 @@
 import json
 import os
-from google import genai
-from google.genai import types
+import requests
+import time
 
 def analyze_sentiment_with_llm(extracted_data: dict) -> dict:
-    """Passes scraped content to Gemini 1.5/2.0 Flash to generate structured sentiment JSON."""
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        return {
-            "error": "GEMINI_API_KEY environment variable is not configured."
-        }
+        return {"error": "GEMINI_API_KEY environment variable is not configured in .env"}
 
-    client = genai.Client(api_key=api_key)
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={api_key}"
 
     prompt = f"""
     You are an expert social media and sentiment analysis engine.
@@ -23,7 +20,7 @@ def analyze_sentiment_with_llm(extracted_data: dict) -> dict:
     Extracted Text / Comments:
     {json.dumps(extracted_data.get('comments', []), indent=2)}
 
-    Return ONLY a valid JSON object matching this exact structure:
+    Return ONLY a raw, valid JSON object matching this exact structure:
     {{
       "summary": "2-3 concise sentences summarizing what the post/video is about and general audience sentiment.",
       "overall_score": 75,
@@ -45,15 +42,32 @@ def analyze_sentiment_with_llm(extracted_data: dict) -> dict:
     }}
     """
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json"
-            )
-        )
-        return json.loads(response.text)
-    except Exception as e:
-        return {"error": f"LLM Processing Failed: {str(e)}"}
-    
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "response_mime_type": "application/json"
+        }
+    }
+
+    # Retry up to 3 times for 503 high-demand spikes
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(url, json=payload, timeout=30)
+            
+            if response.status_code == 200:
+                result_json = response.json()
+                raw_text = result_json["candidates"][0]["content"]["parts"][0]["text"]
+                return json.loads(raw_text)
+            
+            # If 503 high-demand spike, wait and retry
+            if response.status_code == 503 and attempt < max_retries - 1:
+                time.sleep(2 * (attempt + 1))  # Wait 2s, then 4s
+                continue
+                
+            return {"error": f"Gemini API returned status {response.status_code}: {response.text}"}
+
+        except Exception as e:
+            if attempt == max_retries - 1:
+                return {"error": f"LLM Processing Failed: {str(e)}"}
+            time.sleep(2)
