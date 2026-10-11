@@ -1,0 +1,22 @@
+# Environment variables and API keys (CRITICAL)
+.env
+*.env
+backend/.env
+
+# Python virtual environment & cache
+backend/venv/
+backend/__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node / Frontend build files
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# OS and IDE files
+.DS_Store
+.vscode/
+.idea/
+Thumbs.db
