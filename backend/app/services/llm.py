@@ -10,9 +10,9 @@ def analyze_sentiment_with_llm(extracted_data: dict) -> dict:
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={api_key}"
 
-    prompt = f"""
-    You are an expert social media and sentiment analysis engine.
-    Analyze the following scraped content and audience feedback:
+    prompt = prompt = f"""
+    You are an expert web content analyst and sentiment intelligence engine.
+    Analyze the following scraped page metadata and audience feedback:
 
     Platform: {extracted_data.get('platform')}
     Title/Subject: {extracted_data.get('title')}
@@ -22,23 +22,34 @@ def analyze_sentiment_with_llm(extracted_data: dict) -> dict:
 
     Return ONLY a raw, valid JSON object matching this exact structure:
     {{
-      "summary": "2-3 concise sentences summarizing what the post/video is about and general audience sentiment.",
-      "overall_score": 75,
-      "sentiment_percentages": {{
-        "positive": 65,
-        "neutral": 20,
-        "negative": 15
+      "page_overview": {{
+        "core_topic": "1 short sentence identifying the exact subject or purpose of the page/video.",
+        "content_summary": "A comprehensive paragraph summarizing the core text, message, or content presented on the page.",
+        "key_topics_covered": [
+          "Key topic or takeaway 1",
+          "Key topic or takeaway 2",
+          "Key topic or takeaway 3"
+        ]
       }},
-      "emotions": {{
-        "joy": 40,
-        "frustration": 10,
-        "excitement": 30,
-        "skepticism": 20
-      }},
-      "key_insights": [
-        "Top positive driver or praise",
-        "Top concern, criticism, or complaint"
-      ]
+      "sentiment_analysis": {{
+        "summary": "2-3 concise sentences summarizing audience reaction and feedback.",
+        "overall_score": 75,
+        "sentiment_percentages": {{
+          "positive": 65,
+          "neutral": 20,
+          "negative": 15
+        }},
+        "emotions": {{
+          "joy": 40,
+          "frustration": 10,
+          "excitement": 30,
+          "skepticism": 20
+        }},
+        "key_insights": [
+          "Top praise or positive audience feedback",
+          "Top criticism or concern raised by audience"
+        ]
+      }}
     }}
     """
 
